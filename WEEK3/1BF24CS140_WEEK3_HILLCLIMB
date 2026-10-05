@@ -1,0 +1,82 @@
+import random
+
+def calculate_h(state):
+    """Calculates the number of attacking pairs of queens."""
+    attacks = 0
+    n = len(state)
+    for i in range(n):
+        for j in range(i + 1, n):
+            # Same row
+            if state[i] == state[j]:
+                attacks += 1
+            # Same diagonal
+            if abs(state[i] - state[j]) == abs(i - j):
+                attacks += 1
+    return attacks
+
+def get_neighbors(state):
+    """Generates all possible neighbor states by moving one queen in its column."""
+    neighbors = []
+    n = len(state)
+    for col in range(n):
+        for row in range(n):
+            if state[col] != row:
+                neighbor = list(state)
+                neighbor[col] = row
+                neighbors.append(tuple(neighbor))
+    return neighbors
+
+def get_user_initial_state(n=4):
+    """Helper to get and parse a valid initial state from user input."""
+    while True:
+        try:
+            user_input = input(f"Enter initial state as {n} space or comma-separated integers (0-{n-1}): ")
+            # Normalize separators and parse
+            clean_input = user_input.replace(',', ' ').split()
+            if len(clean_input) != n:
+                print(f"Error: You must enter exactly {n} values.")
+                continue
+            state = tuple(int(x) for x in clean_input)
+            if any(x < 0 or x >= n for x in state):
+                print(f"Error: All values must be between 0 and {n-1}.")
+                continue
+            return state
+        except ValueError:
+            print("Error: Invalid input. Please enter integers only.")
+
+def hill_climbing_4_queens():
+    n = 4
+    # Take the initial state from user input
+    current_state = get_user_initial_state(n)
+    current_h = calculate_h(current_state)
+
+    step = 0
+    print(f"\nStep {step}: State = {current_state}, h(n) = {current_h}")
+
+    while current_h > 0:
+        neighbors = get_neighbors(current_state)
+        # Find neighbors with the minimum heuristic value
+        neighbor_heuristics = [(neighbor, calculate_h(neighbor)) for neighbor in neighbors]
+        neighbor_heuristics.sort(key=lambda x: x[1])
+
+        best_neighbor, best_h = neighbor_heuristics[0]
+
+        if best_h >= current_h:
+            # Local optimum reached or flat shoulder.
+            # To ensure we reach h(n) = 0, we will perform a random restart.
+            print("\n[Stuck in local optimum. Performing random restart...]\n")
+            current_state = tuple(random.randint(0, n - 1) for _ in range(n))
+            current_h = calculate_h(current_state)
+            step += 1
+            print(f"Step {step} (Restart): State = {current_state}, h(n) = {current_h}")
+            continue
+
+        current_state = best_neighbor
+        current_h = best_h
+        step += 1
+        print(f"Step {step}: State = {current_state}, h(n) = {current_h}")
+
+    print(f"\nSuccess! Goal state reached at State = {current_state} with h(n) = 0.")
+
+# Run the algorithm
+hill_climbing_4_queens()
