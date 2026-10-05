@@ -47,3 +47,30 @@ class EightPuzzleDFS:
         for i in range(0, 9, 3):
             print(f"{state[i]} {state[i+1]} {state[i+2]}")
         print()
+    def parse_input(prompt):
+        print(prompt)
+        print("Enter 9 numbers (0-8) separated by spaces (e.g., 1 2 3 8 0 4 7 6 5 where 0 is blank):")
+        try:
+            user_input = list(map(int, input().strip().split()))
+            if len(user_input) != 9 or set(user_input) != set(range(9)):
+                raise ValueError("Input must contain exactly 9 unique digits from 0 to 8.")
+            return user_input
+        except Exception as e:
+            print(f"Invalid input: {e}. Please try again.")
+            return parse_input(prompt)
+    
+    # Get user input for initial and goal state
+    initial = parse_input("--- Enter Initial State ---")
+    goal = parse_input("--- Enter Goal State ---")
+    
+    solver = EightPuzzleDFS(initial, goal)
+    print("\nSearching for a solution...")
+    path = solver.solve()
+    
+    if path:
+        print(f"\nSolution found in {len(path) - 1} steps!")
+        for step, state in enumerate(path):
+            print(f"Step {step}:")
+            solver.print_board(state)
+    else:
+        print("No solution could be found.")
